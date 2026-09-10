@@ -1,9 +1,6 @@
 # Order Report Project
  
 ## Beskrivning
- 
-Detta projekt är utvecklat som en del av kursen Pythonprogrammering.
- 
 Programmet läser in orderdata från en CSV-fil, validerar datakvaliteten och genererar flera rapporter baserade på försäljning och returer. Resultaten sparas automatiskt som CSV-filer i output-mappen.
  
 ## Funktioner
@@ -24,7 +21,6 @@ Programmet kan:
  
 ## Projektstruktur
  
-```text
 order_report_project/
 │
 ├── README.md
