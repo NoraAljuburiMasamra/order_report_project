@@ -1,220 +1,76 @@
-import os
-import pandas as pd
+### Code Review av originalkoden
 
-INPUT_FILE = "data/orders.csv"
-OUTPUT_FOLDER = "output"
+### Fynd 1: All funktionalitet ligger i samma fil
+Observation
+Originalkoden hanterar filinläsning, validering, datarensning, beräkningar, rapportgenerering och export till CSV i samma programfil.
 
-print("Startar orderrapport")
+Konsekvens
+Det gör koden svårare att förstå, underhålla och testa.
 
-try:
-    data = pd.read_csv(INPUT_FILE)
+Förslag
+Dela upp lösningen i separata moduler.
 
-    required = {
-        "order_id",
-        "order_date",
-        "customer_id",
-        "region",
-        "product_category",
-        "quantity",
-        "unit_price",
-        "discount",
-        "returned",
-    }
+----------------------------------------
 
-    if not required.issubset(data.columns):
-        raise Exception("Fel data")
+### Fynd 2: Använder print() för statusmeddelanden
 
-    print("Läste in", len(data), "rader")
+Observation
+Programmet använder print() för att visa information om programmets körning.
 
-    data["region"] = data["region"].fillna("Unknown").astype(str).str.strip().str.title()
-    data["product_category"] = (
-        data["product_category"]
-        .fillna("Unknown")
-        .astype(str)
-        .str.strip()
-        .str.title()
-    )
+Konsekvens
+Det blir svårt att styra loggning och felsöka problem.
 
-    data["quantity"] = pd.to_numeric(
-        data["quantity"], errors="coerce"
-    ).fillna(1)
+Förslag
+Använd logging istället för print().
 
-    data["unit_price"] = pd.to_numeric(
-        data["unit_price"], errors="coerce"
-    )
-    data["unit_price"] = data["unit_price"].fillna(
-        data["unit_price"].median()
-    )
+----------------------------------------
 
-    data["discount"] = pd.to_numeric(
-        data["discount"], errors="coerce"
-    ).fillna(0)
+### Fynd 3: Duplicerad kod vid rapportgenerering
 
-    data["returned"] = (
-        data["returned"]
-        .fillna("false")
-        .astype(str)
-        .str.strip()
-        .str.lower()
-        .isin(["true", "yes", "1", "ja"])
-    )
+Observation
+Flera rapporter skapas med liknande groupby-, sorterings- och exportlogik.
 
-    data["order_value"] = (
-        data["quantity"] * data["unit_price"]
-    )
+Konsekvens
+Koden blir längre och svårare att underhålla.
 
-    data["discounted_value"] = (
-        data["order_value"] * (1 - data["discount"])
-    )
+Förslag
+Flytta gemensam logik till återanvändbara funktioner.
 
-    total_sales = round(
-        data["discounted_value"].sum(),
-        2,
-    )
+----------------------------------------
 
-    number_of_orders = data["order_id"].nunique()
-    number_of_returns = int(data["returned"].sum())
+### Fynd 4: Generell felhantering
 
-    overview = pd.DataFrame(
-        {
-            "metric": [
-                "total_sales",
-                "order_count",
-                "return_count",
-            ],
-            "value": [
-                total_sales,
-                number_of_orders,
-                number_of_returns,
-            ],
-        }
-    )
+Observation
+Programmet fångar alla fel med ett generellt Exception.
 
-    overview.to_csv(
-        os.path.join(
-            OUTPUT_FOLDER,
-            "overview.csv",
-        ),
-        index=False,
-    )
+Konsekvens
+Det blir svårare att förstå vad som orsakat felet.
 
-    print("Sparade overview.csv")
+Förslag
+Fånga specifika fel som FileNotFoundError och ValueError.
 
-    result1 = (
-        data.groupby(
-            "product_category",
-            as_index=False,
-        )
-        .agg(
-            order_count=("order_id", "nunique"),
-            total_sales=("discounted_value", "sum"),
-            returns=("returned", "sum"),
-        )
-    )
+----------------------------------------
 
-    result1["total_sales"] = (
-        result1["total_sales"].round(2)
-    )
+### Fynd 5: Hårdkodade sökvägar
 
-    result1["return_rate"] = (
-        result1["returns"]
-        / result1["order_count"]
-    ).round(3)
+Observation
+Filvägar för indata och utdata är definierade direkt i koden.
 
-    result1 = (
-        result1
-        .sort_values(
-            "total_sales",
-            ascending=False,
-        )
-        .reset_index(drop=True)
-    )
+Konsekvens
+Programmet blir mindre flexibelt.
 
-    result1.to_csv(
-        os.path.join(
-            OUTPUT_FOLDER,
-            "sales_by_category.csv",
-        ),
-        index=False,
-    )
+Förslag
+Samla konfiguration i en separat modul eller dataclass.
 
-    print("Sparade sales_by_category.csv")
+----------------------------------------
 
-    result2 = (
-        data.groupby(
-            "region",
-            as_index=False,
-        )
-        .agg(
-            order_count=("order_id", "nunique"),
-            total_sales=("discounted_value", "sum"),
-            returns=("returned", "sum"),
-        )
-    )
+### Fynd 6: Begränsad testbarhet
 
-    result2["total_sales"] = (
-        result2["total_sales"].round(2)
-    )
+Observation
+Många beräkningar sker direkt i huvudflödet.
 
-    result2["return_rate"] = (
-        result2["returns"]
-        / result2["order_count"]
-    ).round(3)
+Konsekvens
+Det blir svårare att skriva automatiska tester.
 
-    result2 = (
-        result2
-        .sort_values(
-            "total_sales",
-            ascending=False,
-        )
-        .reset_index(drop=True)
-    )
-
-    result2.to_csv(
-        os.path.join(
-            OUTPUT_FOLDER,
-            "sales_by_region.csv",
-        ),
-        index=False,
-    )
-
-    print("Sparade sales_by_region.csv")
-
-    returns_by_category = (
-        data.groupby(
-            "product_category",
-            as_index=False,
-        )
-        .agg(
-            order_count=("order_id", "nunique"),
-            returns=("returned", "sum"),
-        )
-    )
-
-    returns_by_category["return_rate"] = (
-        returns_by_category["returns"]
-        / returns_by_category["order_count"]
-    ).round(3)
-
-    returns_by_category = (
-        returns_by_category
-        .sort_values(
-            "return_rate",
-            ascending=False,
-        )
-        .reset_index(drop=True)
-    )
-
-    returns_by_category.to_csv(
-        os.path.join(
-            OUTPUT_FOLDER,
-            "returns_by_category.csv",
-        ),
-        index=False,
-    )
-
-    print("Sparade returns_by_category.csv")
-    print("Klart")
-
-except Exception as error:
-    print("Något gick fel:", error)
+Förslag
+Flytta logik till separata funktioner som kan testas isolerat.
