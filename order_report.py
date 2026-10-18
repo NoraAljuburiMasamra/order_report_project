@@ -4,6 +4,8 @@ import pandas as pd
 INPUT_FILE = "data/orders.csv"
 OUTPUT_FOLDER = "output"
 
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
 print("Startar orderrapport")
 
 try:
