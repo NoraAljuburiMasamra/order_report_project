@@ -172,4 +172,16 @@ Det som tog mest tid var att få projektstrukturen, importerna och testerna att 
 
 Jag tycker att refaktoriseringen har förbättrat projektet avsevärt. Koden är nu mer strukturerad, lättare att förstå och enklare att vidareutveckla. Om jag skulle fortsätta utveckla projektet skulle jag vilja utöka testtäckningen ytterligare, införa fler valideringskontroller och förbättra rapporterna med fler analyser och visualiseringar.
 
+### Projektstruktur
+Jag valde att dela upp projektet i separata moduler för validering, rapportgenerering och konfiguration. Det gör koden mer organiserad, förbättrar läsbarheten och gör det enklare att testa, underhålla och vidareutveckla programmet.
+
+### Automatiska tester
+Testerna skyddar särskilt valideringslogiken i programmet. Om framtida ändringar gör att obligatoriska kolumner inte längre kontrolleras korrekt eller att felaktiga data accepteras kommer testerna att misslyckas direkt. Detta minskar risken att nya ändringar introducerar fel i befintlig funktionalitet och gör refaktorering säkrare.
+
+### OOP / Dataclass
+Jag använde en dataclass för konfigurationen eftersom den samlar relaterade inställningar på ett tydligt ställe. Detta gör det enklare att hantera sökvägar och inställningar, minskar risken för felaktiga parametrar mellan funktioner och gör lösningen lättare att underhålla och utöka.
+
+### Vilka beteenden skyddar testerna
+Testerna skyddar framför allt valideringslogiken. De säkerställer att programmet endast fortsätter när obligatoriska kolumner finns i datan och att felaktiga eller ofullständiga indata upptäcks. Om framtida förändringar bryter denna funktionalitet kommer testerna att misslyckas direkt och signalera problemet.
+
     

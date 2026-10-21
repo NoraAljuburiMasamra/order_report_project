@@ -8,6 +8,9 @@ from validator import validate_columns
 from reports import (
     create_sales_report,
     create_overview_report,
+    create_sales_by_category_report,
+    create_sales_by_region_report,
+    create_returns_by_category_report,
 )
 
 # Konfigurera logging
@@ -44,6 +47,27 @@ def main():
             config.output_dir,
         )
 
+        create_sales_by_category_report(
+            data,
+            config.output_dir,
+        )
+
+        create_sales_by_region_report(
+            data,
+            config.output_dir,
+        )
+
+        create_returns_by_category_report(
+            data,
+            config.output_dir,
+        )
+
+        logger.info(
+        f"Total försäljning: {report}"
+        )
+        logger.info(
+            f"Total försäljning: {report}"
+        )
         logger.info(
             f"Total försäljning: {report}"
         )
@@ -58,8 +82,7 @@ f"Datafilen hittades inte: {config.input_file}"
         )
 
     except Exception as error:
-        logger.error(
-            f"Ett oväntat fel uppstod: {error}"
-        )
+        raise
+        
 if __name__ == "__main__":
     main()
